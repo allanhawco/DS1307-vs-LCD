@@ -1,0 +1,20 @@
+name: Upload Files
+
+on:
+  push:
+    branches:
+      - main # Thay "main" bằng tên nhánh mặc định của bạn
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Upload Files
+      uses: actions/upload-artifact@v2
+      with:
+        name: files
+        path: C:\GitHub\8051\RTC_DS1307 vs LCD16x2-20240416T075637Z-001\RTC_DS1307 vs LCD16x2 # Thay đường dẫn này bằng đường dẫn đến thư mục chứa tệp của bạn trên máy tính
