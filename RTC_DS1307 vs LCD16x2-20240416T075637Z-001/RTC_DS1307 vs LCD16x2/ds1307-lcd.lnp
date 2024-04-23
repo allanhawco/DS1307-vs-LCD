@@ -1,0 +1,7 @@
+"ds1307-lcd.obj",
+"delay.obj",
+"i2c.obj",
+"DS1307.obj",
+"lcd16x2.obj" 
+TO "ds1307-lcd" 
+RAMSIZE(256) 

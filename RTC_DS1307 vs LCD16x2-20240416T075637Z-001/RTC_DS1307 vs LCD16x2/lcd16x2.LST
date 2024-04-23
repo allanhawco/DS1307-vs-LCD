@@ -1,0 +1,192 @@
+C51 COMPILER V9.60.7.0   LCD16X2                                                           04/16/2024 16:08:54 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE LCD16X2
+OBJECT MODULE PLACED IN lcd16x2.OBJ
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE lcd16x2.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /* giao tiep 4 bit */
+   2          
+   3          #include <REGX52.H>
+   4          #include <string.h>
+   5          #include "lcd16x2.h"
+   6          #include "port.h"
+   7          #include "delay.h"
+   8          
+   9          
+  10          #define left 0x18
+  11          #define right 0x1c
+  12          
+  13          /*~~~~~~~~*/
+  14          
+  15          /*~~~~~~~~*/
+  16          void lcd_init()
+  17          {
+  18   1        lcd_cmd(0x38);
+  19   1        delay_ms(5);
+  20   1        lcd_cmd(0x38);
+  21   1        delay_ms(1);
+  22   1        lcd_cmd(0x38);
+  23   1        
+  24   1        /* funtion set 4bit */
+  25   1        _4bit_high(0x20);
+  26   1        lcd_EN = 0;
+  27   1        lcd_EN = 1;
+  28   1        delay_ms(2);
+  29   1        
+  30   1        lcd_cmd(0x28);    /* comunicate 4 bit */
+  31   1        lcd_cmd(0x01);    /* clear all */
+  32   1        lcd_cmd(0x0C);    /* turn on lcd and turn off poitnter */
+  33   1      
+  34   1      }
+  35          /*~~~~~~~~*/
+  36          void _4bit_high(unsigned char high)
+  37          {
+  38   1        lcd_DB7 = high & 0x80;
+  39   1        lcd_DB6 = high & 0x40;
+  40   1        lcd_DB5 = high & 0x20;
+  41   1        lcd_DB4 = high & 0x10;
+  42   1      }
+  43          /*~~~~~~~~*/
+  44          void _4bit_low(unsigned char low)
+  45          {
+  46   1        lcd_DB7 = low & 0x08;
+  47   1        lcd_DB6 = low & 0x04;
+  48   1        lcd_DB5 = low & 0x02;
+  49   1        lcd_DB4 = low & 0x01;
+  50   1      }
+  51          /*~~~~~~~~*/
+  52          void lcd_cmd(unsigned char cmd)
+  53          {
+  54   1        lcd_RW = 0;  /* write */
+  55   1        lcd_RS = 0;  /* thao tac voi lenh */
+C51 COMPILER V9.60.7.0   LCD16X2                                                           04/16/2024 16:08:54 PAGE 2   
+
+  56   1      
+  57   1        /* gui 4 bit cao */
+  58   1        _4bit_high(cmd);
+  59   1        lcd_EN = 0;
+  60   1        lcd_EN = 1;
+  61   1        delay_ms(2);
+  62   1        /* gui 4 bit thap */
+  63   1        _4bit_low(cmd);
+  64   1        lcd_EN = 0;
+  65   1        lcd_EN = 1;
+  66   1        delay_ms(2);
+  67   1      
+  68   1      
+  69   1      }
+  70          /*~~~~~~~~*/
+  71          void lcd_data(unsigned char dat)
+  72          {
+  73   1        lcd_RW = 0;  /* ghi */
+  74   1        lcd_RS = 1;  /* thao tac voi du lieu */
+  75   1        /* gui 4 bit cao */
+  76   1        _4bit_high(dat);
+  77   1        lcd_EN = 0;
+  78   1        lcd_EN = 1;
+  79   1        delay_ms(1);
+  80   1        /* gui 4 bit thap */
+  81   1        _4bit_low(dat);
+  82   1        lcd_EN = 0;
+  83   1        lcd_EN = 1;
+  84   1        delay_ms(1);
+  85   1      }
+  86          /*~~~~~~~~*/
+  87          void lcd_putc(unsigned char c)
+  88          {
+  89   1        lcd_data(c);
+  90   1      }
+  91          /*~~~~~~~~*/
+  92          void lcd_puts(unsigned char *str, int v)
+  93          {
+  94   1        unsigned char length = strlen(str), i;
+  95   1        for(i = 0; i < length; i++)
+  96   1        {
+  97   2          lcd_data(*(str+i));
+  98   2          delay_ms(v);
+  99   2        }
+ 100   1      }
+ 101          /*~~~~~~~~*/
+ 102          void lcd_position(unsigned char row, unsigned char column)
+ 103          {
+ 104   1        if(row == 1)  lcd_cmd(0x80|(column - 1));
+ 105   1        if(row == 2)  lcd_cmd(0xC0|(column - 1));
+ 106   1      }
+ 107          /*~~~~~~~~*/
+ 108          void lcd_shiftleftAC(unsigned char x)
+ 109          {
+ 110   1        unsigned char i;
+ 111   1        for(i = 0; i < x; i++)
+ 112   1        {
+ 113   2          lcd_cmd(0x10); // dich con tro AC sang trai i don vi
+ 114   2        }
+ 115   1      }
+ 116          /*~~~~~~~~*/
+ 117          void lcd_shiftleftscreen(unsigned char i)
+C51 COMPILER V9.60.7.0   LCD16X2                                                           04/16/2024 16:08:54 PAGE 3   
+
+ 118          {
+ 119   1        unsigned char x;
+ 120   1        for(x = 0; x < i; x++)
+ 121   1        {
+ 122   2          lcd_cmd(left);
+ 123   2          delay_ms(100);
+ 124   2        }
+ 125   1      }
+ 126          //void hien_thi(unsigned char gio, unsigned char phut , unsigned char giay)
+ 127          //{
+ 128          //  unsigned char c_gio, dv_gio, c_phut, dv_phut, c_giay, dv_giay;
+ 129          //  c_gio = gio / 10 + 48;
+ 130          //  dv_gio = gio%10 + 48;
+ 131          //  c_phut = phut/10 + 48;
+ 132          //  dv_phut = phut%10 + 48;
+ 133          //  c_giay = giay/10 + 48;
+ 134          //  dv_giay = giay%10 + 48;
+ 135          //  lcd_position(1, 1);
+ 136          //  lcd_puts("time:");
+ 137          //  lcd_putc(c_gio);
+ 138          //  lcd_putc(dv_gio);
+ 139          //  lcd_putc(':');
+ 140          //  lcd_putc(c_phut);
+ 141          //  lcd_putc(dv_phut);
+ 142          //  lcd_putc(':');
+ 143          //  lcd_putc(c_giay);
+ 144          //  lcd_putc(dv_giay);
+ 145          //}
+ 146          ///*~~~~~~~~*/
+ 147          //main()
+ 148          //{
+ 149          //  lcd_init();
+ 150          ////  lcd_position(1, 5);
+ 151          ////  lcd_putc(48);
+ 152          
+ 153          //  lcd_position(2, 3);
+ 154          //  lcd_puts("chung");
+ 155          //  while(1)
+ 156          //  {
+ 157          //    for(giay = 0; giay < 61; giay++)
+ 158          //    {
+ 159          //      if(giay == 60) { phut++; giay = 0; }
+ 160          //      if(phut == 60) gio++;
+ 161          //      hien_thi(gio, phut, giay);
+ 162          //      delay_ms(500);
+ 163          //    }
+ 164          //  }
+ 165          //}
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    310    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      15
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

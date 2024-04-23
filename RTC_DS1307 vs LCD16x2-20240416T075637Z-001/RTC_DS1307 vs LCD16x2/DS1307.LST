@@ -1,0 +1,137 @@
+C51 COMPILER V9.60.7.0   DS1307                                                            04/16/2024 15:53:37 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE DS1307
+OBJECT MODULE PLACED IN DS1307.OBJ
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE DS1307.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "i2c.h"
+   3          #include "DS1307.h"
+   4          
+   5          /* dinh nghia cac ham trong DS1307.h */
+   6          /*-- chuyen doi bcd-dec, dec-bcd -----*/
+   7          unsigned char DEC_BCD(unsigned char DEC)
+   8          {
+   9   1        unsigned char temp = DEC;
+  10   1        return (((DEC/10)*16) + (temp%10));
+  11   1      }
+  12          /*---------------*/
+  13          unsigned char BCD_DEC(unsigned char BCD)
+  14          {
+  15   1        unsigned char temp = BCD;
+  16   1        return ((BCD/16)*10 + temp%16);
+  17   1      }
+  18          /*-----Qua trinh ghi 1 byte du lieu-------------*/
+  19          void write_DS1307(unsigned char data_in)
+  20          {
+  21   1        unsigned char temp = DEC_BCD(data_in);
+  22   1        i2c_write(temp);                        /* ket qua viet vao la 1 so BCD */
+  23   1      }
+  24          /*-----Qua trinh lay 1 byte du lieu-------------*/
+  25          unsigned char read_DS1307(bit ack)
+  26          {
+  27   1        unsigned char data_out, temp;
+  28   1        data_out = i2c_read(ack);
+  29   1        temp  = BCD_DEC(data_out);
+  30   1        return temp;                          /* ket qua lay ra la 1 so DEC */
+  31   1      }
+  32          /*-- cac ham cai thoi gian va lay thoi gian ra --*/
+  33          /*-----Qua trinh ghi 3 byte du lieu : 3 so DEC->BCD-------------*/
+  34          void set_time(unsigned char add_reg, unsigned char hour, unsigned char min, unsigned char sec)
+  35          {
+  36   1        i2c_start();
+  37   1        i2c_write(0xD0);    /* dia chi DS va bit cho phep viet vao DS 0x68<<1 | 0*/
+  38   1        i2c_write(add_reg);   /* dia chi thanh ghi dau tien */
+  39   1        write_DS1307(sec);
+  40   1        write_DS1307(min);
+  41   1        write_DS1307(hour);
+  42   1        i2c_stop();
+  43   1      }
+  44          /*-----Qua trinh lay 3 byte du lieu : 3 so BCD->DEC-------------*/
+  45          void get_time(unsigned char add_reg, unsigned char *hour, unsigned char *min, unsigned char *sec) 
+  46          {
+  47   1        i2c_start();
+  48   1        i2c_write(0xD0);
+  49   1        i2c_write(add_reg);   /* lay du lieu bat dau tu thanh ghi co dia cho add_reg */
+  50   1      //  i2c_stop();
+  51   1        
+  52   1        i2c_start();
+  53   1        i2c_write(0xD1);    /* dia chi DS va bit cho phep doc tu DS */
+  54   1        *sec  = read_DS1307(0); 
+  55   1        *min  = read_DS1307(0);     
+C51 COMPILER V9.60.7.0   DS1307                                                            04/16/2024 15:53:37 PAGE 2   
+
+  56   1        *hour = read_DS1307(1);  
+  57   1        
+  58   1        i2c_stop();
+  59   1      }
+  60          /*---------------*/
+  61          void control()
+  62          {
+  63   1        i2c_start();
+  64   1        i2c_write(0xD0);
+  65   1        i2c_write(0x07);
+  66   1        i2c_write(0x10);
+  67   1        i2c_write(0x93);
+  68   1        i2c_stop();
+  69   1      }
+  70          
+  71          /*for test*/
+  72          
+  73          void test_write(unsigned char add_reg, unsigned char datain)
+  74          {
+  75   1        datain = DEC_BCD(datain);
+  76   1        i2c_start();
+  77   1        i2c_write(0xD0);
+  78   1        i2c_write(add_reg);
+  79   1        i2c_write(datain);
+  80   1        i2c_stop();
+  81   1      }
+  82          
+  83          unsigned char test_read(unsigned char add_reg)
+  84          {
+  85   1        unsigned char dataout;
+  86   1        i2c_start();
+  87   1        i2c_write(0xD0);
+  88   1        i2c_write(add_reg);
+  89   1        i2c_start();
+  90   1        i2c_write(0xD1);
+  91   1        dataout = i2c_read(1);
+  92   1        i2c_stop();
+  93   1        dataout = BCD_DEC(dataout);
+  94   1        return dataout;
+  95   1      }
+  96          
+  97          
+  98          
+  99          
+ 100          
+ 101          
+ 102          
+ 103          
+ 104          
+ 105          
+ 106          
+ 107          
+ 108          
+ 109          
+ 110          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    267    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V9.60.7.0   DS1307                                                            04/16/2024 15:53:37 PAGE 3   
+
+   DATA SIZE        =   ----      18
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
